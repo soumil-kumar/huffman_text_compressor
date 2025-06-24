@@ -11,7 +11,7 @@ class HuffmanNode {
 // Main Huffman Coding implementation
 class HuffmanCoding {
     constructor() {
-        this.PSEUDO_EOF = '\uFFFF'; // Use a Unicode char unlikely to appear in text
+        this.PSEUDO_EOF = '\uFFFF'; // a Unicode char
         this.reset();
     }
 
@@ -24,7 +24,7 @@ class HuffmanCoding {
         this.compressedBytes = null; // Store Uint8Array
     }
 
-    // Build frequency table from input text
+    // to build frequency table from input text
     buildFrequencyTable(text) {
         const freqTable = {};
         for (let i = 0; i < text.length; i++) {
@@ -37,8 +37,9 @@ class HuffmanCoding {
         return freqTable;
     }
 
-    // Build the Huffman tree from frequency table
+    // to build the Huffman tree from frequency table
     buildHuffmanTree(freqTable) {
+        //create huffmannode class for each character int the text
         const pq = Object.keys(freqTable).map(char => 
             new HuffmanNode(char, freqTable[char])
         );
@@ -46,7 +47,7 @@ class HuffmanCoding {
         // Sort by frequency (ascending)
         pq.sort((a, b) => a.freq - b.freq);
         
-        // Handle special case: single character
+        // Edge case: single character
         if (pq.length === 1) {
             this.root = new HuffmanNode(null, pq[0].freq);
             this.root.left = pq[0];
@@ -82,22 +83,19 @@ class HuffmanCoding {
         return this.root;
     }
 
-    // Generate codes by traversing the tree
+    // Generate codes recursively by traversing the tree
     generateCodes(node = this.root, code = "") {
         if (!node) return;
-        
-        // Leaf node - assign code to character
+        // base case
         if (node.char) {
             this.codes[node.char] = code || "0"; // Handle single character case
             return;
         }
-        
-        // Traverse left (add 0)
+        // Traverse left
         if (node.left) {
             this.generateCodes(node.left, code + "0");
         }
-        
-        // Traverse right (add 1)
+        // Traverse right
         if (node.right) {
             this.generateCodes(node.right, code + "1");
         }
@@ -123,7 +121,7 @@ class HuffmanCoding {
         const bytes = new Uint8Array(byteLength);
         for (let i = 0; i < bitString.length; i++) {
             const byteIndex = Math.floor(i / 8);
-            const bitIndex = 7 - (i % 8);
+            const bitIndex = (i % 8);
             if (bitString[i] === '1') {
                 bytes[byteIndex] |= (1 << bitIndex);
             }
@@ -137,7 +135,7 @@ class HuffmanCoding {
         let bits = "";
         for (let i = 0; i < bytes.length; i++) {
             let byte = bytes[i];
-            for (let j = 7; j >= 0; j--) {
+            for (let j = 0; j <= 7; j++) {
                 bits += ((byte >> j) & 1) ? '1' : '0';
             }
         }
@@ -332,13 +330,10 @@ document.addEventListener("DOMContentLoaded", function() {
             // Show output section
             encodeOutput.classList.remove("hidden");
             
-            // Update compression stats
             updateCompressionStats();
             
-            // Update codes table
             updateCodesTable();
             
-            // Update statistics tab
             updateStatisticsTab();
             
             // Auto-fill decode input
@@ -370,7 +365,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const item = document.createElement("div");
             item.className = "code-item";
             
-            // Display special characters in a readable way
+            // Display special characters
             let displayChar = char;
             if (char === " ") displayChar = "SPACE";
             else if (char === "\n") displayChar = "NEWLINE";
@@ -490,28 +485,28 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         traverseTree(huffman.root, 0);
 
-        // Set container height based on tree depth, but allow scrolling
-        const treeHeight = Math.max(levels.length * 40 + 40, 200); // smaller vertical spacing
+        // Set container height 
+        const treeHeight = Math.max(levels.length * 40 + 40, 200);
         container.style.height = treeHeight + "px";
         container.style.position = "relative";
         container.style.overflow = "auto";
 
-        // Calculate max width needed for the bottom level
-        const nodeSize = 32; // smaller node size
-        const minSpacing = 12; // smaller spacing
+        // compute width of last level
+        const nodeSize = 32; // diameter of each node(bubble)
+        const minSpacing = 18; // between leaves
         const maxNodes = Math.max(...levels.map(l => l.length));
-        // Use container's clientWidth to fit the tree inside the box
+        // Use container's clientWidth - to fit the tree inside the box
         const containerWidth = container.clientWidth || 600;
         const treeWidth = Math.max((nodeSize + minSpacing) * maxNodes, containerWidth);
         container.style.width = "100%";
 
-        // Assign x positions recursively to avoid overlap
+        // Assign x positions recursively and avoid overlap
         let nodePositions = new Map();
         let xCounter = 0;
         function assignPositions(node, depth) {
             if (!node) return;
             if (!node.left && !node.right) {
-                // Leaf node: assign next available x
+                // Leaf node
                 nodePositions.set(node, xCounter * (nodeSize + minSpacing) + nodeSize);
                 xCounter++;
             } else {
@@ -540,7 +535,7 @@ document.addEventListener("DOMContentLoaded", function() {
             shiftX = (containerWidth - graphWidth) / 2 - minX;
         } else {
             // Ensure the leftmost part of the graph is visible
-            shiftX = -minX + nodeSize / 2 + 8; // 8px padding
+            shiftX = -minX + nodeSize / 2 + 8; // +8 for padding
         }
 
         // Draw SVG for lines
@@ -558,10 +553,10 @@ document.addEventListener("DOMContentLoaded", function() {
             const y = level * 70 + 20;
             levelNodes.forEach((node) => {
                 const x = nodePositions.get(node) + shiftX;
-                // Draw lines to children
+                // Draw lines
                 if (node.left) {
-                    const childX = nodePositions.get(node.left) + shiftX;
-                    const childY = (level + 1) * 70 + 20;
+                    const childX = nodePositions.get(node.left) + shiftX + 5;
+                    const childY = (level + 1) * 70 + 40;
                     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
                     line.setAttribute("x1", x);
                     line.setAttribute("y1", y + nodeSize / 2);
@@ -572,8 +567,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     svg.appendChild(line);
                 }
                 if (node.right) {
-                    const childX = nodePositions.get(node.right) + shiftX;
-                    const childY = (level + 1) * 70 + 20;
+                    const childX = nodePositions.get(node.right) + shiftX + 5;
+                    const childY = (level + 1) * 70 + 40;
                     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
                     line.setAttribute("x1", x);
                     line.setAttribute("y1", y + nodeSize / 2);
@@ -615,7 +610,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const text = element.value || element.innerText || element.textContent;
 
     navigator.clipboard.writeText(text).then(() => {
-        // Visual feedback
         const originalText = button.textContent;
         button.classList.add("copied");
         button.textContent = "Copied!";
@@ -627,31 +621,45 @@ document.addEventListener("DOMContentLoaded", function() {
         })
     }
     
-    // Download buttons
+    // Download button
     document.getElementById("download-compressed").addEventListener("click", function() {
         if (!huffman.compressedBytes) {
             showError("No compressed data available");
             return;
         }
-        // Save the codebook (codes) as JSON, and the bit length
-        const codebook = JSON.stringify(huffman.codes);
+
+        // Save the codemap (codes) as JSON, and the bit length
+        const codemap = JSON.stringify(huffman.codes);
         const bitLength = huffman.compressedText.length;
-        // Compose a binary file: [codebook length (4 bytes)][codebook][bitLength (4 bytes)][data]
+
+        // Compose a binary file: [codemap length][codemap][bitLength][data]
         const encoder = new TextEncoder();
-        const codebookBytes = encoder.encode(codebook);
+        const codemapBytes = encoder.encode(codemap);
+
+        //not working currently
         const header = new Uint8Array(8);
-        // Store codebook length (first 4 bytes, big-endian)
-        header[0] = (codebookBytes.length >>> 24) & 0xFF;
-        header[1] = (codebookBytes.length >>> 16) & 0xFF;
-        header[2] = (codebookBytes.length >>> 8) & 0xFF;
-        header[3] = codebookBytes.length & 0xFF;
+        // Store codemap length (first 4 bytes, big-endian)
+        header[0] = (codemapBytes.length >>> 24) & 0xFF;
+        header[1] = (codemapBytes.length >>> 16) & 0xFF;
+        header[2] = (codemapBytes.length >>> 8) & 0xFF;
+        header[3] = codemapBytes.length & 0xFF;
         // Store bitLength (next 4 bytes, big-endian)
         header[4] = (bitLength >>> 24) & 0xFF;
         header[5] = (bitLength >>> 16) & 0xFF;
         header[6] = (bitLength >>> 8) & 0xFF;
         header[7] = bitLength & 0xFF;
+
+        // const headerStr  = `${codemapBytes.length}\n${bitLength}\n`
+
         // Concatenate all
-        const blob = new Blob([header, codebookBytes, huffman.compressedBytes], { type: "application/octet-stream" });
+        const blob = new Blob(
+            [header,
+             codemapBytes,
+             huffman.compressedBytes
+            ],
+            { type: "application/octet-stream" }
+        );
+
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -693,7 +701,7 @@ document.addEventListener("DOMContentLoaded", function() {
         errorToast.classList.remove("hidden");
         errorToast.classList.add("show");
         
-        // Auto-hide after 5 seconds
+        // Auto-hide
         setTimeout(hideError, 5000);
     }
     
